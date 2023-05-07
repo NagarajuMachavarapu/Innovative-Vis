@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang='en'>
+    <head>
+        <title>Homework #4: Innovative Visualization Design - CSE 578 - Spring 2023</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" />
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <style>
+            #dino_div {
+                float:left;
+                width:1000px;
+                padding:10px; 
+            }
+            #graph_div{
+                float:left;
+                width:800px;
+                padding:10px;
+            }
+            #map_div, #one_div,#two_div,#three_div {
+                float:left;
+                width:620px;
+                padding:10px; 
+            }
+            
+            #map_svg,#one_svg,#two_svg,#three_svg {
+                width: 600px; 
+                height: 500px;
+                background-color: white;
+                border: 1px solid lightgray;
+                border-radius: 3px;
+            }
+            #dino_svg {
+                width: 1000px; 
+                height:600px;
+                background-color: white;
+                border: 1px solid lightgray;
+                border-radius: 3px;
+            }
+            #graph_svg {
+                width: 780px; 
+                height:600px;
+                background-color: white;
+                border: 1px solid lightgray;
+                border-radius: 3px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="myContainer">
+            <h1 class="text-center">Homework #4: Innovative Visualization Design</h1>
+            <h3 class="text-center">Nagaraju Machavarapu - nmachav1@asu.edu</h3><br>
+            <h5>Short Description:</h5>
+            <h6>For homework4, I created an innovative and interactive visualization using several types of visualizations on dinosaur dataset. Firstly, I started with a Point Map kind of Visualization
+                that takes the country attribute of the dataset and colors the country depending on the popular dinosaur type available in that country.
+            </h6>
+            <h6> Marks: Area</h6>
+            <h6> Channels: Color hue, Position(Latitude, Longitude)</h6>
+            <h6> Interactions: A tooltip that shows the name of the country the mouse is on. When you click on a country, a stacked bar chart will be formed right below the visualization
+                that shows country wise count of the dinosaurs with x-axis as type of the dinosaur and y-axis as count and the color of the bar represents the diet of the dinosaur.
+            </h6>
+            <h6> Marks: lines</h6>
+            <h6> Channels: Color hue, Position(Horizontal, Vertical)</h6>
+            <h6>The next three visualizations, seperating dinosaurs w.r.t the period they belong to, shows individual dinosaur data. Here, I used a variation of scatter plot, where instead
+                of using circles/points to show a data point, I used a letter "D"( D for dinosaur). I color coded the letter according to the diet of the dinosaur. </h6>
+            <h6> Marks: points</h6>
+            <h6> Channels: Color hue, Position(Latitude, Longitude)</h6>
+            <h6> Interactions: A tooltip that shows the name and the species of the dinosaur. When you click on a letter "D", a new html page will be opened that contains all the data related to that particular dinosaur.
+            </h6>
+            <h6>
+                The final visualization I used is similar to a point map(I think) where I manually created a shape that looks like a dinosaur.
+            </h6>
+            <h6> Interactions:  Once you click on the dinosaur, a new web page will be opened(dinosaur.html), which contains all the names of the dinosaurs color coded according to their type. If you click on any name listed, a
+                 new web page will be opened that contains more information for that dinosaur. 
+            </h6>
+            </div>
+        <div id = "dino_div">
+            <svg id = "dino_svg"></svg>
+        </div>
+        <div id = "map_div">
+            <svg id = "map_svg"></svg>
+        </div>
+        <div id = "one_div">
+            <svg id = "one_svg"></svg>
+        </div>
+        <div id = "two_div">
+            <svg id = "two_svg"></svg>
+        </div>
+        <div id = "three_div">
+            <svg id = "three_svg"></svg>
+        </div>
+        <div id = "graph_div">
+            <svg id = "graph_svg"></svg>
+        </div>
+        
+    </body>
+    <script>
+        let dinodata = {};
+        let jurassic1 = {};
+        let cretaceous1 = {};
+        let triassic1 = {};
+        const svg = d3.select('#dino_svg');
+        const margin = { top:30, bottom: 0, right: 30, left: 0 };
+        const width = +svg.style('width').replace('px','');
+        const height = +svg.style('height').replace('px','');
+        const innerWidth = width - margin.left - margin.right;
+        const innerHeight = height - margin.top - margin.bottom;
+        Promise.all([d3.csv('dinosaur.csv')])
+        .then(function (values) {
+            dinodata = values[0];
+            //console.log(dinodata);
+            let i = 0,j=0,k=0;
+            dinodata.forEach(d => {
+                d["Name"] = d["name"];
+                d["Diet"] = d["diet"];
+                if(d.hasOwnProperty("period") && d["period"].includes("Jurassic")){
+                    d["Period"] = "Jurassic";
+                    //console.log(d["period"]);
+                    let [startYear, endYear] = d["period"].match(/\d+/g);
+                    let dinosaur = {
+                        "year": null,
+                        "length": parseFloat(d["length"]),
+                        "diet": d["diet"],
+                        "name": d["name"],
+                        "link": d["link"],
+                        "species": d["species"]
+                    };
+                    //console.log(startYear,endYear)
+                    for (let year = endYear; year <= startYear; year++) {
+                        //console.log(jurassic1);
+                        if (!(year in jurassic1)) {
+                            dinosaur["year"] = +year;
+                            jurassic1[i] = dinosaur;
+                            i = i+1;
+                            // jurassic1[year] = parseFloat(d["length"]);
+                            // //jurassic1["Diet"] = d["diet"];
+                            // console.log(parseFloat(d["length"]));
+                            break;
+                        }
+                    }
+                }   
+                if(d.hasOwnProperty("period") && d["period"].includes("Cretaceous")){
+                    d["Period"] = "Cretaceous";
+                    //console.log(d["period"]);
+                    let [startYear, endYear] = d["period"].match(/\d+/g);
+                    let dinosaur = {
+                        "year": null,
+                        "length": parseFloat(d["length"]),
+                        "diet": d["diet"],
+                        "name": d["name"],
+                        "link": d["link"],
+                        "species": d["species"]
+                    };
+                    //console.log(startYear,endYear)
+                    for (let year = endYear; year <= startYear; year++) {
+                        if (!(year in cretaceous1)) {
+                            dinosaur["year"] = +year;
+                            cretaceous1[j] = dinosaur;
+                            j = j+1;
+                            // console.log(parseFloat(d["length"]));
+                            // cretaceous1["Diet"] = d["diet"];
+                            // cretaceous1[year] = parseFloat(d["length"]);;
+                            break;
+                        }
+                    }
+                }
+                if(d.hasOwnProperty("period") && d["period"].includes("Triassic")){
+                    d["Period"] = "Triassic";
+                    //console.log(d["period"]);
+                    let [startYear, endYear] = d["period"].match(/\d+/g);
+                    let dinosaur = {
+                        "year": null,
+                        "length": parseFloat(d["length"]),
+                        "diet": d["diet"],
+                        "name": d["name"],
+                        "link": d["link"],
+                        "species": d["species"]
+                    };
+                    //console.log(startYear,endYear)
+                    for (let year = endYear; year <= startYear; year++) {
+                        if (!(year in triassic1)) {
+                            dinosaur["year"] = +year;
+                            triassic1[k] = dinosaur;
+                            k = k+1;
+                            // console.log(parseFloat(d["length"]));
+                            // triassic1["Diet"] = d["diet"];
+                            // triassic1[year] = parseFloat(d["length"]);;
+                            break;
+                        }
+                    }
+                }
+                
+                d["Country"] = d["lived_in"];
+                d["Type"] = d["type"];
+                d["Length"] = parseFloat(d["length"]);
+                d["Link"] = d["link"];
+            });
+            //console.log(triassic1,cretaceous1,jurassic1)
+            drawgraphs(jurassic1,"#two_svg");
+            drawgraphs(cretaceous1,"#three_svg");
+            drawgraphs(triassic1,"#one_svg");
+            //console.log(dinodata);
+        })
+        svg.selectAll('g').remove();
+
+        var tooltip = d3.select("body")
+                .append("div")
+                .style("position", "absolute")
+                .style("z-index", "10")
+                .style("visibility", "hidden")
+                .style("background-color", "white")
+                .style("padding", "8px")
+                .style("border-radius", "8px")
+                .style("text-align", "center")
+                .style("font-size", "14px")
+                .style("border", "2px solid black")
+        const g = svg.append('g')
+           .attr('transform', 'translate('+margin.left+', '+margin.top+')');
+        
+        d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(function(mapData) {
+        // create a projection and path for the map
+        const projection = d3.geoMercator()
+            .scale(130)
+            .translate([width / 2, height / 1.5]);
+        //console.log(projection(projection))
+        const path = d3.geoPath().projection(projection);
+        //console.log(path)
+        //console.log(mapData.features);
+        // draw the map
+        g.append("g")
+            .selectAll("path")
+            .data(mapData.features)
+            .enter()
+            .append("path")
+            .attr('class',function(d){
+                //console.log(d.properties.name)
+                return d.properties.name;})
+            .attr("fill", function(d){
+                country = d.properties.name;
+                return fillfunc(country);
+            })
+            .attr("stroke", "white")
+            .style("stroke-width", "1")
+            .attr("d", path)
+            .on("mouseover", function(event,d){
+                d3.select(this).style("stroke", "black")
+                d3.select(this).style("stroke-width", "1");
+                tooltip.html( d.properties.name + "<br>");
+                    return tooltip.style("visibility", "visible")
+                    .style("top", (event.pageY-60)+"px")
+                .style("left",(event.pageX+10)+"px");
+            })
+            .on("mousemove", function(event){
+            return tooltip.style("top", (event.pageY-60)+"px")
+                .style("left",(event.pageX+10)+"px");
+            })
+            .on("mouseout", function(event,d) {
+                d3.select(this).style("stroke", "white")
+                d3.select(this).style("stroke-width", "1");
+                return tooltip.style("visibility", "hidden");
+            })
+            .style("cursor", "pointer")
+            .on("click", function(event,d){
+                const country = d.properties.name;
+                const col = d3.select(this).attr("fill")
+                if (col !== "grey") {
+                    click_func(dinodata,d.properties.name);
+                }
+                else{
+                    alert(`No data available for ${country}.`);
+                    d3.select("#map_svg").selectAll("g").remove();
+                }
+            });
+        
+        });
+        g.append('text')
+        .attr('transform',`translate(${230},${0})`)
+        .style("font-size", "17px")
+        .text('The color represents the most popular dinosaur type found in that country.');
+        g.append('rect')
+            .attr('x','30')
+            .attr('y', '400')
+            .attr('width','15')
+            .attr('height','15')
+            .style('fill','pink')
+            .style('stroke','pink');
+        g.append('text')
+            .attr('transform',`translate(${50},${413})`)
+            .text('Sauropod Dinosaur');
+        g.append('rect')
+            .attr('x','30')
+            .attr('y', '420')
+            .attr('width','15')
+            .attr('height','15')
+            .style('fill','blue')
+            .style('stroke','blue');
+        g.append('text')
+            .attr('transform',`translate(${50},${433})`)
+            .text('Euornithopod Dinosaur');
+        g.append('rect')
+            .attr('x','30')
+            .attr('y', '440')
+            .attr('width','15')
+            .attr('height','15')
+            .style('fill','maroon')
+            .style('stroke','maroon');
+        g.append('text')
+            .attr('transform',`translate(${50},${453})`)
+            .text('Theropod Dinosaur');
+        g.append('rect')
+            .attr('x','30')
+            .attr('y', '460')
+            .attr('width','15')
+            .attr('height','15')
+            .style('fill','yellow')
+            .style('stroke','yellow');
+        g.append('text')
+            .attr('transform',`translate(${50},${473})`)
+            .text('Ceratopsian Dinosaur');
+        g.append('rect')
+            .attr('x','30')
+            .attr('y', '480')
+            .attr('width','15')
+            .attr('height','15')
+            .style('fill','purple')
+            .style('stroke','purple');
+        g.append('text')
+            .attr('transform',`translate(${50},${493})`)
+            .text('Armoured Dinosaur');
+        g.append('rect')
+            .attr('x','30')
+            .attr('y', '500')
+            .attr('width','15')
+            .attr('height','15')
+            .style('fill','grey')
+            .style('stroke','grey');
+        g.append('text')
+            .attr('transform',`translate(${50},${513})`)
+            .text('No Data Available');
+//console.log(jurassic1);         
+
+function click_func(dataset,country){
+    //console.log(dataset);
+    const svg = d3.select("#map_svg");
+    const width = +svg.style('width').replace('px','');
+    const height = +svg.style('height').replace('px','');
+    const margin = { top:90, bottom: 60, right: 90, left: 60 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    let map = {}
+    var tooltip = d3.select("body")
+                .append("div")
+                .style("position", "absolute")
+                .style("z-index", "10")
+                .style("visibility", "hidden")
+                .style("background-color", "white")
+                .style("padding", "8px")
+                .style("border-radius", "8px")
+                .style("text-align", "center")
+                .style("font-size", "14px")
+                .style("border", "2px solid black")
+    dataset.forEach(d=>{
+        if(d["Country"] == country && d["Type"].includes("sauropod")){
+            dinotype = "sauropod"
+            if (!(dinotype in map))
+            map[dinotype] = {"herb": 0, "carn": 0, "omni": 0}
+            if(d["Diet"] == "herbivorous")
+                map[dinotype]["herb"]++;
+            else if(d["Diet"] == "carnivorous")
+                map[dinotype]["carn"]++;
+            else map[dinotype]["omni"]++;
+        }
+        else if(d["Country"] == country && d["Type"].includes("euornithopod")){
+            dinotype = "euornithopod"
+            if (!(dinotype in map))
+            map[dinotype] = {"herb": 0, "carn": 0, "omni": 0}
+            if(d["Diet"] == "herbivorous")
+                map[dinotype]["herb"]++;
+            else if(d["Diet"] == "carnivorous")
+                map[dinotype]["carn"]++;
+            else map[dinotype]["omni"]++;
+        }
+        else if(d["Country"] == country && d["Type"].includes("theropod")){
+            dinotype = "theropod"
+            if (!(dinotype in map))
+            map[dinotype] = {"herb": 0, "carn": 0, "omni": 0}
+            if(d["Diet"] == "herbivorous")
+                map[dinotype]["herb"]++;
+            else if(d["Diet"] == "carnivorous")
+                map[dinotype]["carn"]++;
+            else map[dinotype]["omni"]++;
+        }
+        else if(d["Country"] == country && d["Type"].includes("ceratopsian")){
+            dinotype = "ceratopsian"
+            if (!(dinotype in map))
+            map[dinotype] = {"herb": 0, "carn": 0, "omni": 0}
+            if(d["Diet"] == "herbivorous")
+                map[dinotype]["herb"]++;
+            else if(d["Diet"] == "carnivorous")
+                map[dinotype]["carn"]++;
+            else map[dinotype]["omni"]++;
+        }
+        else if(d["Country"] == country && d["Type"].includes("armoured")){
+            dinotype = "armoured"
+            if (!(dinotype in map))
+            map[dinotype] = {"herb": 0, "carn": 0, "omni": 0}
+            if(d["Diet"] == "herbivorous")
+                map[dinotype]["herb"]++;
+            else if(d["Diet"] == "carnivorous")
+                map[dinotype]["carn"]++;
+            else map[dinotype]["omni"]++;
+        }
+    })
+    //console.log(map);
+    const newData = Object.entries(map).map(([key, value]) => ({type: key, ...value}));
+    //console.log(newData);
+    const xScale = d3.scaleBand()
+                      .domain(newData.map(d => d.type))
+                      .range([0, innerWidth])
+                      //.range([margin.left, width - margin.right])
+                      .padding(0.1);
+
+    const yScale = d3.scaleLinear()
+                      .domain([0, d3.max(newData, d => d.herb + d.carn + d.omni)])
+                      .range([innerHeight, 0 ]); 
+                      //.range([height - margin.bottom, margin.top]);
+
+const colorScale = d3.scaleOrdinal()
+                            .domain(['herb', 'carn', 'omni'])
+                            .range(['green', 'red', 'orange']);
+    svg.selectAll('g').remove();
+    const g = svg.append('g')
+        .attr('transform', 'translate('+margin.left+', '+margin.top+')');
+
+        g.append("g")
+    .call(d3.axisLeft(yScale));
+    
+
+     g.append("g")
+    .call(d3.axisBottom(xScale)).attr('transform',`translate(0,${innerHeight})`);
+
+    const stack = d3.stack().keys(["herb", "carn", "omni"]);
+    //console.log(Object.entries(map));
+    const stackedData = stack(newData);
+    //const stackedData = stack(Object.entries(map).map(d => Object.assign(d.value, { type: d.key })));
+
+    g.selectAll(".serie")
+        .data(stackedData)
+        .enter().append("g")
+        .attr("class", "serie")
+        .attr("fill", d => colorScale(d.key))
+        .selectAll("rect")
+        .data(d => d)
+        .enter().append("rect")
+        .attr("x", d => xScale(d.data.type))
+        .attr("y", d => yScale(d[1]))
+        .attr("height", d => yScale(d[0]) - yScale(d[1]))
+        .attr("width", xScale.bandwidth())
+        .attr("stroke", function(d){
+            if (d.data.type == "sauropod")
+                return "pink";
+            else if (d.data.type == "euornithopod")
+                return "blue";
+            else if (d.data.type == "theropod")
+                return "maroon";
+            else if (d.data.type == "ceratopsian")
+                return "yellow";
+            else if (d.data.type == "armoured")
+                return "purple";
+        })
+        .attr("stroke-width", "2")
+        // .on("mouseover", function(event,d){
+        //             d3.select(this).style("stroke-width", "4");
+        //             console.log(d3.select(this).attr("fill"))
+        //             if(d.key == "carn")
+        //                     tooltip.html("We love meat");
+        //             else if(d.key == "herb")
+        //                     tooltip.html("We love grass");
+        //             else tooltip.html("We love both meat and grass");
+        //         return tooltip.style("visibility", "visible")
+        //                 .style("top", (event.pageY-60)+"px")
+        //             .style("left",(event.pageX+10)+"px");
+        //         })
+        //         .on("mousemove", function(event){
+        //             return tooltip.style("top", (event.pageY-60)+"px")
+        //                 .style("left",(event.pageX+10)+"px");
+        //         })
+        //         .on("mouseout", function(event,d) {
+        //             d3.select(this).style("stroke-width", "2");
+        //             return tooltip.style("visibility", "hidden");
+        //         });
+
+    svg.append("rect")
+            .attr('x','450')
+            .attr('y', '20')
+            .attr('width','15')
+            .attr('height','15')
+            .style('fill','green')
+            .style('stroke','green');
+    svg.append('text')
+        .attr('transform',`translate(${470},${33})`)
+        .text('We love grass.');
+
+    svg.append("rect")
+        .attr('x','450')
+        .attr('y', '40')
+        .attr('width','15')
+        .attr('height','15')
+        .style('fill','red')
+        .style('stroke','red');
+    svg.append('text')
+        .attr('transform',`translate(${470},${53})`)
+        .text('We love meat.');
+
+    svg.append("rect")
+        .attr('x','450')
+        .attr('y', '60')
+        .attr('width','15')
+        .attr('height','15')
+        .style('fill','orange')
+        .style('stroke','orange');
+    svg.append('text')
+        .attr('transform',`translate(${470},${73})`)
+        .text('We love both.');
+    svg.append('text')
+        .attr('transform',`translate(${10},${20})`)
+        .style("font-size", "17px")
+        .style("fill", "indigo")
+        .text("Country wise dinosaur count w.r.t type")
+    // g.append("g")
+    //         .selectAll("g")
+    //         .data(stackedData)
+    //         .enter().append("g")
+    //             .attr("fill", d => colorScale(d.key))
+    //         .selectAll("rect")
+    //         .data(d => d)
+    //         .enter().append("rect")
+    //             .attr("x", d => xScale(d.data.type))
+    //             .attr("y", d => yScale(d[1]))
+    //             .attr("height", d => yScale(d[0]) - y(d[1]))
+    //             .attr("width", xScale.bandwidth());
+    // const stacks = g.selectAll("g")
+    //                     .data(Object.entries(map))
+    //                     .join("g")
+    //                       .attr("transform", d => `translate(${xScale(d[0])},0)`);
+    
+    // stacks.selectAll("rect")
+    //         .data(d => Object.entries(d[1]))
+    //         .join("rect")
+    //           .attr("x", 0)
+    //           .attr("y", d => yScale(d[1]) - margin.bottom)
+    //           .attr("width", xScale.bandwidth())
+    //           .attr("height", d => yScale(0) - yScale(d[1]))
+
+
+
+}
+function drawgraphs(dataset,svgdiv){
+    console.log(dataset);
+    const svg2 = d3.select(svgdiv);
+    const width = +svg2.style('width').replace('px','');
+    const height = +svg2.style('height').replace('px','');
+    const margin = { top:30, bottom: 60, right: 30, left: 60 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const lengths = Object.values(dataset).map(d=>d.length);
+    const years = Object.values(dataset).map(d=>d.year);
+    //console.log();
+    const minLen = Math.min(...lengths);
+    const maxLen = Math.max(...lengths);
+    const minYear = Math.min(...years);
+    const maxYear = Math.max(...years);
+    //console.log("Min Year: ", minYear);
+    //console.log("Max Len: ", minLen);
+    var tooltip = d3.select("body")
+                .append("div")
+                .style("position", "absolute")
+                .style("z-index", "10")
+                .style("visibility", "hidden")
+                .style("background-color", "white")
+                .style("padding", "8px")
+                .style("border-radius", "8px")
+                .style("text-align", "center")
+                .style("font-size", "14px")
+                .style("border", "2px solid black")
+    const xScale = d3.scaleLinear()
+                                .domain([minYear, maxYear]) 
+                                //.domain([d3.timeParse('%Y')(minYear),d3.timeParse('%Y')(maxYear)])
+                                .range([0, innerWidth]);
+    const yScale = d3.scaleLinear()
+                                   .domain([0, maxLen]) 
+                                   .range([innerHeight, 0 ]); 
+    //console.log(yScale)
+    svg2.selectAll('g').remove();
+    const g = svg2.append('g')
+        .attr('transform', 'translate('+margin.left+', '+margin.top+')');
+
+    g.append("g")
+    .call(d3.axisLeft(yScale));
+    
+
+     g.append("g")
+    .call(d3.axisBottom(xScale)).attr('transform',`translate(0,${innerHeight})`);
+
+    g.append('text')
+        .attr('transform',`translate(${150},${0})`)
+        .style("font-size", "17px")
+        .style("fill", "indigo")
+        .text(function(d){
+            if(svgdiv == '#one_svg')
+                return "Triassic Period";
+            else if(svgdiv == '#two_svg')
+                return "Jurassic Period";
+            else return "Cretaceous Period";
+        });
+
+    g.append('text')
+        .attr('transform','rotate(-90)')
+        .attr('dy','-30')
+        .attr('dx','-260')
+        .text('Length of the dinosaur');
+
+    g.append('text')
+        .attr('transform',`translate(${200},${innerHeight+40})`)
+        .text('No. of million years ago it existed');
+
+    //const dataArray = Object.values(dataset);
+    const group = g.selectAll(".dinosaur")
+        .data(Object.values(dataset))
+        .enter()
+        .append("g")
+        .attr("class", "dinosaur")
+    
+    g.append("rect")
+                .attr('x','400')
+                .attr('y', '50')
+                .attr('width','15')
+                .attr('height','15')
+                .style('fill','green')
+                .style('stroke','green');
+            g.append('text')
+                .attr('transform',`translate(${420},${63})`)
+                .text('Herbivorous');
+
+            g.append("rect")
+                .attr('x','400')
+                .attr('y', '70')
+                .attr('width','15')
+                .attr('height','15')
+                .style('fill','red')
+                .style('stroke','red');
+            g.append('text')
+                .attr('transform',`translate(${420},${83})`)
+                .text('Carnivorous');
+
+                g.append("rect")
+                .attr('x','400')
+                .attr('y', '90')
+                .attr('width','15')
+                .attr('height','15')
+                .style('fill','orange')
+                .style('stroke','orange');
+            g.append('text')
+                .attr('transform',`translate(${420},${103})`)
+                .text('Omnivorous');
+
+    group.append("text")
+                .text("D")
+              .attr("font-family", "Arial")
+              .attr("font-size", "10px")
+                .attr("transform", d => "translate(" + xScale(d.year) + "," + yScale(d.length) + ")")  
+                .style("fill", function(d){ 
+                    if(d["diet"] == "herbivorous")
+                            return "green";
+                        else if(d["diet"] == "carnivorous")
+                            return "red";
+                        else if(d["diet"] == "omnivorous")
+                            return "orange";
+                        else return "black";
+                })
+                .attr("stroke", function(d){ 
+                    if(d["diet"] == "herbivorous")
+                            return "green";
+                        else if(d["diet"] == "carnivorous")
+                            return "red";
+                        else if(d["diet"] == "omnivorous")
+                            return "orange";
+                        else return "black";
+                })
+                .on("mouseover", function(event,d){
+                    d3.select(this).style("stroke-width", "1.3");
+                    tooltip.html("Name: " + d.name + "<br>" + "Year: ~" + d.year + "mil years ago" + "<br>"+ "Length: " + d.length + 'm' +"<br>"+ "Species: " + d.species + 'm' +"<br>");
+                        return tooltip.style("visibility", "visible")
+                        .style("top", (event.pageY-60)+"px")
+                    .style("left",(event.pageX+10)+"px");
+                })
+                .on("mousemove", function(event){
+                    return tooltip.style("top", (event.pageY-60)+"px")
+                        .style("left",(event.pageX+10)+"px");
+                })
+                .on("mouseout", function(event,d) {
+                    d3.select(this).style("stroke-width", "1");
+                    return tooltip.style("visibility", "hidden");
+                })
+                .style("cursor", "pointer")
+                .on("click", function(event,d){
+                    //console.log(d.link)
+                    window.open(d["link"], "_blank");
+                })
+}
+
+
+    const svg1 = d3.select("#graph_svg")
+    const dinoPath = "M80 20 L140 60 L200 120 L280 200 L440 260 L560 300 L660 400 L700 520 L560 380 L480 380 L480 620 L430 620 L430 460 L350 460 L350 620 L300 620 L300 460 L120 120 L40 40Z";
+    const g1 = svg1.append("g")
+  .attr("transform", "translate(50,50)");
+    g1.append("path")
+        .attr("d", dinoPath)
+        .attr("fill", "green")
+        .attr("stroke", "black")
+        .style("cursor", "pointer")
+        .on("click", function(d) {
+            window.open("dinosaur.html", "_blank");
+        });
+
+    g1.append("circle")
+        .attr("cx", 80)
+        .attr("r", "1.3")
+        .style("fill", "white")
+        .attr("stroke", "white") 
+        .attr("cy", 40)
+        .style("cursor", "pointer")
+        .on("click", function(d) {
+            window.open("dinosaur.html", "_blank");
+        });
+    g1.append("text")
+        .attr('transform',`translate(${0},${0})`)
+        .style("text-anchor", "left")
+        .style("font-size", "17px")
+        .style("font-weight", "bold")
+        .text('Click on the dinosaur for all the data related to dinosaurs:');
+function fillfunc(country){
+    mapping = [0,0,0,0,0,0]
+    //console.log(dinodata)
+    maxi = 0;
+    mapping1 = {"red" : 0,
+                "blue": 0,
+                "green": 0,
+                "yellow": 0,
+                "purple": 0         
+            }
+    //console.log(data);
+    //country = data.properties.name;
+    dinodata.forEach(d => {
+        if(d["Country"] == country){
+            if(d["Type"].includes("sauropod"))
+                mapping[0]++;
+            else if(d["Type"].includes("euornithopod"))
+                mapping[1]++;
+            else if(d["Type"].includes("theropod"))
+                mapping[2]++;
+            else if(d["Type"].includes("ceratopsian"))
+                mapping[3]++;
+            else if(d["Type"].includes("armoured"))
+                mapping[4]++;
+            else mapping[5]++;
+        }
+    })
+    //console.log(country,mapping);
+    for(i =1 ; i<6; i++){
+        if(mapping[i]>mapping[maxi]){
+            maxi = i;
+        }
+    }
+    if(maxi==0 && mapping[0]> 0) return "pink";
+        else if(maxi==1) return "blue";
+        else if(maxi==2) return "maroon";
+        else if(maxi==3) return "yellow";
+        else if(maxi==4) return "purple";
+        else return "grey";   
+}
+        
+    </script>

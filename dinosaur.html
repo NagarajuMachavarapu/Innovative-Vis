@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dinosaurs</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>   
+        svg {
+            width: 500px; 
+            height:6300px;
+            background-color: white;
+            border: 1px solid lightgray;
+        }
+    </style>
+  </head>
+  <body>
+    <h1>Dinosaurs:</h1>
+    <h3>Click on the dinosaur names to find more information:</h3>
+    <h5>The color of the name indicates the diet of the dinosaur.</h5>
+    <div id="dino_div">
+        <svg id="data_svg"></svg>
+    </div>
+  </body>
+  <script>
+    let dinodata = {};
+    let dinolinkdata = {};
+    Promise.all([d3.csv('dinosaur.csv')])
+        .then(function (values) {
+            dinodata = values[0];
+            //console.log(dinodata);
+            dinodata.forEach(d => {
+                d["Name"] = d["name"];
+                d["Diet"] = d["diet"];
+                if(d.hasOwnProperty("period") && d["period"].includes("Jurassic"))
+                    d["Period"] = "Jurassic";
+                if(d.hasOwnProperty("period") && d["period"].includes("Cretaceous"))
+                    d["Period"] = "Cretaceous";
+                if(d.hasOwnProperty("period") && d["period"].includes("Triassic"))
+                    d["Period"] = "Triassic";
+                d["Country"] = d["lived_in"];
+                d["Type"] = d["type"];
+                d["Length"] = parseFloat(d["length"]);
+                d["Link"] = d["link"];
+            });
+            dinodata.forEach(d => {
+                dinolinkdata[d["Name"]] = d["Link"];
+                //dinolinkdata["Type"] = d["type"];
+            });  
+            //console.log(dinolinkdata);
+            
+            // select the SVG element
+            const svg = d3.select("#data_svg");
+            const g = svg.append("g")
+              .attr("transform", "translate(20,30)");
+            // add the dinosaur names to the SVG
+            g.selectAll("text")
+              .data(Object.entries(dinolinkdata))
+              .enter()
+              .append("a")
+              .attr("href", function(d) { return d[1]; })
+              .attr("target", "_blank")
+              .append("text")
+              .text(function(d) { return d[0]; })
+              .attr("x", 10)
+              .attr("y", function(d, i) { return 30 + i*20; })
+              .attr("font-family", "Arial")
+              .attr("font-size", "16px")
+              .attr("fill", function(d){
+                //console.log(dinodata);
+                const dinosaur = dinodata.find(x => x.Name === d[0]);
+                //console.log(dinosaur)
+                if(dinosaur && dinosaur["Type"].includes("sauropod"))
+                    return "pink";
+                else if(dinosaur && dinosaur["Type"].includes("euornithopod"))
+                    return "blue";
+                else if(dinosaur && dinosaur["Type"].includes("theropod"))
+                    return "maroon";
+                else if(dinosaur && dinosaur["Type"].includes("ceratopsian"))
+                    return "yellow";
+                else if(dinosaur && dinosaur["Type"].includes("armoured"))
+                    return "purple";
+              })
+              .style("cursor", "pointer");
+
+            g.append("rect")
+                .attr('x','250')
+                .attr('y', '50')
+                .attr('width','15')
+                .attr('height','15')
+                .style('fill','pink')
+                .style('stroke','pink');
+            g.append('text')
+                .attr('transform',`translate(${270},${63})`)
+                .text('sauropod');
+
+            g.append("rect")
+                .attr('x','250')
+                .attr('y', '70')
+                .attr('width','15')
+                .attr('height','15')
+                .style('fill','blue')
+                .style('stroke','blue');
+            g.append('text')
+                .attr('transform',`translate(${270},${83})`)
+                .text('euornithopod');
+
+                g.append("rect")
+                .attr('x','250')
+                .attr('y', '90')
+                .attr('width','15')
+                .attr('height','15')
+                .style('fill','maroon')
+                .style('stroke','maroon');
+            g.append('text')
+                .attr('transform',`translate(${270},${103})`)
+                .text('theropod');
+
+                g.append("rect")
+                .attr('x','250')
+                .attr('y', '110')
+                .attr('width','15')
+                .attr('height','15')
+                .style('fill','yellow')
+                .style('stroke','yellow');
+            g.append('text')
+                .attr('transform',`translate(${270},${123})`)
+                .text('ceratopsian');
+
+                g.append("rect")
+                .attr('x','250')
+                .attr('y', '130')
+                .attr('width','15')
+                .attr('height','15')
+                .style('fill','purple')
+                .style('stroke','purple');
+            g.append('text')
+                .attr('transform',`translate(${270},${143})`)
+                .text('armoured');
+
+            g.append('text')
+                .attr('transform',`translate(${0},${0})`)
+                .style("font-weight", "bold")
+                .text('Color of the name indicates the period of the dinosaur:');
+    });
+           
+            
+  </script>
+</html>
